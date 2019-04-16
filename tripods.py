@@ -35,7 +35,7 @@ def bounding_box(s):
 
 def get_seeds(r):
     if r >= 5 and r <= 7:
-        combos = itertools.combinations(range(1,r+1), 3)
+        combos = itertools.combinations(range(r,0,-1), 3)
         return [ ((-2,0,c[0]), (-1,0,c[1]), (0,0,c[2])) for c in combos ]
     return [((0,0,1),)]
 
