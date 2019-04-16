@@ -1,23 +1,6 @@
 import sys
 import collections
-
-
-def print_matrix(s):
-    for i in range(len(s)):
-        print("|", end='')
-        for j in range(len(s[i])):
-            if s[i][j]:
-                print(s[i][j], end='')
-            else:
-                print(" ", end='')
-        print("|")
-
-def add_col(s, j):
-    return [ r[:j] + [None] + r[j:] for r in s ]
-
-def add_row(s, i):
-    cols = len(s[0])
-    return s[:i] + [[None]*cols] + s[i:]
+import itertools
 
 def dmin(a):
     if a: return min(a)
@@ -45,6 +28,29 @@ def is_valid(tr, s):
         return False
     return True
 
+def bounding_box(s):
+    xs = [t[0] for t in s]
+    ys = [t[1] for t in s]
+    return min(xs), max(xs), min(ys), max(ys)
+
+def get_seeds(r):
+    if r >= 5 and r <= 7:
+        combos = itertools.combinations(range(1,r+1), 3)
+        return [ ((-2,0,c[0]), (-1,0,c[1]), (0,0,c[2])) for c in combos ]
+    return [((0,0,1),)]
+
+def print_matrix(s):
+    minx, maxx, miny, maxy = bounding_box(s)
+    for y in range(maxy, miny-1, -1):
+        print("|", end='')
+        for x in range(minx, maxx+1):
+            e = [ t[2] for t in s if (t[0],t[1]) == (x,y) ]
+            if e:
+                print(e[0], end='')
+            else:
+                print(" ", end='')
+        print("|")
+
 
 if __name__ == "__main__":
     r = 3
@@ -52,26 +58,31 @@ if __name__ == "__main__":
         r = int(sys.argv[1])
 
     q = collections.deque()
-    q.append([(100,100,1)])
-    print(q)
+    qs = set()
+    seeds = get_seeds(r)
+    for s in seeds:
+        qs.add(s)
+        q.append(s)
     best = 0
+    iteration = 0
     while True:
         s = q.popleft()
-        xs = [t[0] for t in s]
-        ys = [t[1] for t in s]
-        minx = min(xs)
-        maxx = max(xs)
-        miny = min(ys)
-        maxy = max(ys)
+        minx, maxx, miny, maxy = bounding_box(s)
         score = len(s)
         size = (maxx-minx) + (maxy-miny) + 2
         ratio = 2*score/size
-        if ratio > best:
+        if ratio >= best:
             best = ratio
-            print(score, size, ratio)
-            print(s)
+            print("\n{} {} {}".format(score, size, ratio))
+            print_matrix(s)
+        if iteration % 1000 == 0:
+            print("\r{:10} {:10} {:10} {:5.4} {:3}".format(iteration, len(q), len(qs), best, size), end='')
+        iteration += 1
         for x in range(minx-1, maxx+2):
             for y in range(miny-1, maxy+2):
                 for t in range(1, r+1):
                     if is_valid((x,y,t), s):
-                        q.append(s + [(x,y,t)])
+                        nt = tuple(sorted(s + ((x,y,t),)))
+                        if not nt in qs:
+                            q.append(nt)
+                            qs.add(nt)
