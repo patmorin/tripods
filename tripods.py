@@ -65,6 +65,7 @@ if __name__ == "__main__":
         q.append(s)
     best = 0
     iteration = 0
+    duplicates = 0
     while True:
         s = q.popleft()
         minx, maxx, miny, maxy = bounding_box(s)
@@ -76,7 +77,7 @@ if __name__ == "__main__":
             print("\n{} {} {}".format(score, size, ratio))
             print_matrix(s)
         if iteration % 1000 == 0:
-            print("\r{:10} {:10} {:10} {:5.4} {:3}".format(iteration, len(q), len(qs), best, size), end='')
+            print("\r{:10} {:10} {:10} {:10} {:5.4} {:3}".format(iteration, len(q), len(qs), duplicates, best, size), end='')
         iteration += 1
         for x in range(minx-1, maxx+2):
             for y in range(miny-1, maxy+2):
@@ -86,3 +87,5 @@ if __name__ == "__main__":
                         if not nt in qs:
                             q.append(nt)
                             qs.add(nt)
+                        else:
+                            duplicates += 1
